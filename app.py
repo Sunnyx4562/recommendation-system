@@ -7,7 +7,7 @@ from streamlit_extras.switch_page_button import switch_page
 from streamlit_extras.stylable_container import stylable_container
 import random
 
-TMDB_API_KEY = 'cbe1f8e54cabf33493acde2f3a08c4ae'  # Replace with your actual TMDB API key
+TMDB_API_KEY = 'cbe1f8e54cabf33493acde2f3a08c4ae'
 
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide", page_icon="🎥")
 st.markdown("""
@@ -108,7 +108,7 @@ def get_movie_details_tmdb(title):
             actor_name = actor.get('name')
             profile_path = actor.get('profile_path')
             actor_img = f"https://image.tmdb.org/t/p/w200{profile_path}" if profile_path else None
-            actor_id = actor.get('id')  # Add actor's TMDb ID
+            actor_id = actor.get('id')
             cast_info.append({'name': actor_name, 'image': actor_img, 'id': actor_id})
 
         trailer_url = None
@@ -203,7 +203,7 @@ if st.session_state.recommendations is not None:
         details = get_movie_details_tmdb(row['movie_title'])
         with col:
             if details and details['poster']:
-                st.image(details['poster'], use_column_width=True)
+                st.image(details['poster'], use_container_width=True)
             st.markdown(f"**{row['movie_title']}**")
             st.markdown(f"⭐ {details['rating']}/10" if details else "")
             if st.button("More Info", key=f"info_{i}_{row['movie_title']}"):
@@ -216,7 +216,7 @@ if st.session_state.selected_movie:
         col1, col2 = st.columns([1, 2])
         with col1:
             if details['poster']:
-                st.image(details['poster'], use_column_width=True)
+                st.image(details['poster'], use_container_width=True)
         with col2:
             st.markdown(f"**Overview:** {details['overview']}")
             st.markdown(f"**Rating:** ⭐ {details['rating']}/10")
@@ -234,7 +234,7 @@ if st.session_state.selected_movie:
                 if actor['image']:
                     actor_name = actor['name']
                     actor_img = actor['image']
-                    actor_id = actor['id']  # Use the actor's TMDb ID
+                    actor_id = actor['id']
                     st.image(actor_img, width=100)
                     st.markdown(actor_name)
                     if st.button(f"Info: {actor_name}", key=f"actor_info_{i}"):
@@ -244,4 +244,4 @@ if st.session_state.selected_movie:
                             st.markdown(f"**Born:** {actor_details['birth_date']} in {actor_details['place_of_birth']}")
                             st.markdown(f"**Biography:** {actor_details['biography']}")
                             if actor_details['profile_img']:
-                                st.image(actor_details['profile_img'], use_column_width=True)
+                                st.image(actor_details['profile_img'], use_container_width=True)
