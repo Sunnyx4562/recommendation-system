@@ -65,7 +65,7 @@ def set_background(image_path):
         unsafe_allow_html=True
     )
 
-set_background("Untitled design.jpg")
+set_background("assets/backgroundimg.jpg")
 
 @st.cache_data
 def load_data(path='main_data.csv'):
@@ -188,7 +188,7 @@ def get_actor_details_tmdb(actor_id):
         print(f"Error fetching actor details: {e}")
         return None
 
-st.title("🎬 Movie Recommender System")
+st.title("🎥🍿 Movie Recommender System")
 df = load_data()
 sim_matrix = create_similarity_matrix(df)
 
@@ -236,7 +236,7 @@ if st.session_state.recommendations is not None:
                 )
             st.markdown(f"**{row['movie_title']}**")
             st.markdown(f"⭐ {details['rating']}/10" if details else "")
-            if st.button("More Info", key=f"info_{i}_{row['movie_title']}"):
+            if st.button("More Details", key=f"info_{i}_{row['movie_title']}"):
                 st.session_state.selected_movie = row['movie_title']
 
 if st.session_state.selected_movie:
@@ -264,7 +264,7 @@ if st.session_state.selected_movie:
                 if actor['image']:
                     st.image(actor['image'], width=100, caption=actor['name'], output_format="auto")
                     st.markdown(f"<img src='{actor['image']}' class='top-cast-img' width='100'>", unsafe_allow_html=True)
-                if st.button(f"Info: {actor['name']}", key=f"actor_info_{i}"):
+                if st.button(f"Know more", key=f"actor_info_{i}"):
                     actor_details = get_actor_details_tmdb(actor['id'])
                     if actor_details:
                         st.markdown(f"**{actor_details['name']}**")
