@@ -188,7 +188,7 @@ def get_actor_details_tmdb(actor_id):
         print(f"Error fetching actor details: {e}")
         return None
 
-st.title("🎥🍿 Movie Recommender System")
+st.title("🎥🍿 Movies Recommender Pro")
 df = load_data()
 sim_matrix = create_similarity_matrix(df)
 
