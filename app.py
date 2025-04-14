@@ -37,7 +37,7 @@ st.markdown("""
         transform: scale(1.03);
     }
     .top-cast-img {
-        border-radius: 50%;
+        border-radius: 15px;
         margin-bottom: 8px;
     }
     </style>
@@ -246,7 +246,7 @@ if st.session_state.selected_movie:
         col1, col2 = st.columns([1, 2])
         with col1:
             if details['poster']:
-                st.image(details['poster'], use_container_width=True)
+                st.image(details['poster'], width=300)
         with col2:
             st.markdown(f"**Overview:** {details['overview']}")
             st.markdown(f"**Rating:** ⭐ {details['rating']}/10")
@@ -262,8 +262,15 @@ if st.session_state.selected_movie:
         for i, actor in enumerate(details['cast']):
             with cast_cols[i]:
                 if actor['image']:
-                    st.image(actor['image'], width=100, caption=actor['name'], output_format="auto")
-                    st.markdown(f"<img src='{actor['image']}' class='top-cast-img' width='100'>", unsafe_allow_html=True)
+                    st.markdown(
+                        f'''
+                        <div style="text-align:left">
+                            <img src="{actor["image"]}" class="top-cast-img" width="100">
+                            <div style="padding-top:4px;"><b>{actor["name"]}</b></div>
+                        </div>
+                        ''',
+                        unsafe_allow_html=True
+                    )
                 if st.button(f"Know more", key=f"actor_info_{i}"):
                     actor_details = get_actor_details_tmdb(actor['id'])
                     if actor_details:
@@ -271,4 +278,4 @@ if st.session_state.selected_movie:
                         st.markdown(f"**Born:** {actor_details['birth_date']} in {actor_details['place_of_birth']}")
                         st.markdown(f"**Biography:** {actor_details['biography']}")
                         if actor_details['profile_img']:
-                            st.image(actor_details['profile_img'], use_container_width=True)
+                            st.image(actor_details['profile_img'], width=300)
