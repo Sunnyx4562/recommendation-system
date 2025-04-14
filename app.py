@@ -6,31 +6,74 @@ from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_extras.stylable_container import stylable_container
 import random
+import base64
 
 TMDB_API_KEY = 'cbe1f8e54cabf33493acde2f3a08c4ae'
 
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide", page_icon="🎥")
+
+# 💅 Professional UI styling
 st.markdown("""
     <style>
     .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding: 2rem 4rem;
     }
-    .stButton button {
-        border-radius: 12px;
-        padding: 0.6rem 1.2rem;
-        background-color: #e50914;
-        color: white;
-        border: none;
-        font-weight: bold;
+    .stSelectbox, .stTextInput, .stButton {
+        font-size: 16px;
     }
-    .stButton button:hover {
-        background-color: #f40612;
-        color: white;
+    .stSelectbox > div {
+        border-radius: 10px;
+    }
+    h1, h2, h3 {
+        color: #ffffff;
+    }
+    .stApp {
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .movie-poster {
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
+        margin-bottom: 10px;
+    }
+    .movie-poster:hover {
+        transform: scale(1.03);
+    }
+    .rounded-cast {
+        border-radius: 50%;
+        object-fit: cover;
+        width: 100px;
+        height: 100px;
     }
     </style>
 """, unsafe_allow_html=True)
 
+def set_background(image_path):
+    with open(image_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{encoded_image}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        .stMarkdown, .stTextInput, .stSelectbox, .stButton {{
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            color: white !important;
+        }}
+        .stTitle h1, .stSubheader h2 {{
+            color: white !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+set_background("assets/backgroundimg.jpg")
 
 @st.cache_data
 def load_data(path='main_data.csv'):
@@ -46,13 +89,11 @@ def load_data(path='main_data.csv'):
     df['combined_features'] = df.apply(combine_features, axis=1)
     return df
 
-
 @st.cache_resource
 def create_similarity_matrix(df):
     vectorizer = CountVectorizer(stop_words='english')
     count_matrix = vectorizer.fit_transform(df['combined_features'])
     return cosine_similarity(count_matrix)
-
 
 def get_recommendations_by_title(title, df, sim_matrix):
     if title not in df['movie_title'].values:
@@ -62,22 +103,18 @@ def get_recommendations_by_title(title, df, sim_matrix):
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:11]
     return df.iloc[[i[0] for i in sim_scores]]
 
-
 def get_recommendations_by_genre(genre, df):
     subset = df[df['genres'] == genre]
     return subset.sample(min(10, len(subset)))
-
 
 def get_recommendations_by_director(director, df):
     subset = df[df['director_name'] == director]
     return subset.sample(min(10, len(subset)))
 
-
 def get_recommendations_by_actor(actor, df):
     mask = (df['actor_1_name'] == actor) | (df['actor_2_name'] == actor) | (df['actor_3_name'] == actor)
     subset = df[mask]
     return subset.sample(min(10, len(subset)))
-
 
 def get_movie_details_tmdb(title):
     try:
@@ -102,7 +139,7 @@ def get_movie_details_tmdb(title):
 
         credits_url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key={TMDB_API_KEY}"
         credits_res = requests.get(credits_url).json()
-        cast = credits_res.get('cast', [])[:3]
+        cast = credits_res.get('cast', [])[:5]  # 👈 Updated to show 5 cast members
         cast_info = []
         for actor in cast:
             actor_name = actor.get('name')
@@ -134,7 +171,6 @@ def get_movie_details_tmdb(title):
     except:
         return None
 
-
 def get_actor_details_tmdb(actor_id):
     try:
         actor_url = f"https://api.themoviedb.org/3/person/{actor_id}?api_key={TMDB_API_KEY}"
@@ -160,8 +196,7 @@ def get_actor_details_tmdb(actor_id):
         print(f"Error fetching actor details: {e}")
         return None
 
-
-st.title("🎬 Movie Recommender System")
+st.title("🎥🍿 Movies Recommender Pro")
 df = load_data()
 sim_matrix = create_similarity_matrix(df)
 
@@ -203,10 +238,13 @@ if st.session_state.recommendations is not None:
         details = get_movie_details_tmdb(row['movie_title'])
         with col:
             if details and details['poster']:
-                st.image(details['poster'], use_container_width=True)
+                st.markdown(
+                    f'<img src="{details["poster"]}" class="movie-poster" width="80%">',  # 👈 smaller poster
+                    unsafe_allow_html=True
+                )
             st.markdown(f"**{row['movie_title']}**")
             st.markdown(f"⭐ {details['rating']}/10" if details else "")
-            if st.button("More Info", key=f"info_{i}_{row['movie_title']}"):
+            if st.button("More Details", key=f"info_{i}_{row['movie_title']}"):
                 st.session_state.selected_movie = row['movie_title']
 
 if st.session_state.selected_movie:
@@ -216,7 +254,7 @@ if st.session_state.selected_movie:
         col1, col2 = st.columns([1, 2])
         with col1:
             if details['poster']:
-                st.image(details['poster'], use_container_width=True)
+                st.image(details['poster'], use_column_width=True)
         with col2:
             st.markdown(f"**Overview:** {details['overview']}")
             st.markdown(f"**Rating:** ⭐ {details['rating']}/10")
@@ -232,16 +270,13 @@ if st.session_state.selected_movie:
         for i, actor in enumerate(details['cast']):
             with cast_cols[i]:
                 if actor['image']:
-                    actor_name = actor['name']
-                    actor_img = actor['image']
-                    actor_id = actor['id']
-                    st.image(actor_img, width=100)
-                    st.markdown(actor_name)
-                    if st.button(f"Info: {actor_name}", key=f"actor_info_{i}"):
-                        actor_details = get_actor_details_tmdb(actor_id)
-                        if actor_details:
-                            st.markdown(f"**{actor_details['name']}**")
-                            st.markdown(f"**Born:** {actor_details['birth_date']} in {actor_details['place_of_birth']}")
-                            st.markdown(f"**Biography:** {actor_details['biography']}")
-                            if actor_details['profile_img']:
-                                st.image(actor_details['profile_img'], use_container_width=True)
+                    st.markdown(f'<img src="{actor["image"]}" class="rounded-cast">', unsafe_allow_html=True)
+                st.markdown(actor['name'])
+                if st.button(f"know more", key=f"actor_info_{i}"):
+                    actor_details = get_actor_details_tmdb(actor['id'])
+                    if actor_details:
+                        st.markdown(f"**{actor_details['name']}**")
+                        st.markdown(f"**Born:** {actor_details['birth_date']} in {actor_details['place_of_birth']}")
+                        st.markdown(f"**Biography:** {actor_details['biography']}")
+                        if actor_details['profile_img']:
+                            st.image(actor_details['profile_img'])
