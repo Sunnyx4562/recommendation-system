@@ -12,7 +12,7 @@ TMDB_API_KEY = 'cbe1f8e54cabf33493acde2f3a08c4ae'
 
 st.set_page_config(page_title="🎬 Movie Recommender", layout="wide", page_icon="🎥")
 
-# 💅 Professional UI styling
+# UI Styling
 st.markdown("""
     <style>
     .block-container {
@@ -20,9 +20,6 @@ st.markdown("""
     }
     .stSelectbox, .stTextInput, .stButton {
         font-size: 16px;
-    }
-    .stSelectbox > div {
-        border-radius: 10px;
     }
     h1, h2, h3 {
         color: #ffffff;
@@ -39,11 +36,9 @@ st.markdown("""
     .movie-poster:hover {
         transform: scale(1.03);
     }
-    .rounded-cast {
+    .top-cast-img {
         border-radius: 50%;
-        object-fit: cover;
-        width: 100px;
-        height: 100px;
+        margin-bottom: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -65,15 +60,12 @@ def set_background(image_path):
             background-color: rgba(0, 0, 0, 0.6) !important;
             color: white !important;
         }}
-        .stTitle h1, .stSubheader h2 {{
-            color: white !important;
-        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-set_background("assets/backgroundimg.jpg")
+set_background("Untitled design.jpg")
 
 @st.cache_data
 def load_data(path='main_data.csv'):
@@ -139,7 +131,7 @@ def get_movie_details_tmdb(title):
 
         credits_url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key={TMDB_API_KEY}"
         credits_res = requests.get(credits_url).json()
-        cast = credits_res.get('cast', [])[:5]  # 👈 Updated to show 5 cast members
+        cast = credits_res.get('cast', [])[:5]
         cast_info = []
         for actor in cast:
             actor_name = actor.get('name')
@@ -196,7 +188,7 @@ def get_actor_details_tmdb(actor_id):
         print(f"Error fetching actor details: {e}")
         return None
 
-st.title("🎥🍿 Movies Recommender Pro")
+st.title("🎬 Movie Recommender System")
 df = load_data()
 sim_matrix = create_similarity_matrix(df)
 
@@ -239,12 +231,12 @@ if st.session_state.recommendations is not None:
         with col:
             if details and details['poster']:
                 st.markdown(
-                    f'<img src="{details["poster"]}" class="movie-poster" width="80%">',  # 👈 smaller poster
+                    f'<img src="{details["poster"]}" class="movie-poster" width="80%">',
                     unsafe_allow_html=True
                 )
             st.markdown(f"**{row['movie_title']}**")
             st.markdown(f"⭐ {details['rating']}/10" if details else "")
-            if st.button("More Details", key=f"info_{i}_{row['movie_title']}"):
+            if st.button("More Info", key=f"info_{i}_{row['movie_title']}"):
                 st.session_state.selected_movie = row['movie_title']
 
 if st.session_state.selected_movie:
@@ -254,7 +246,7 @@ if st.session_state.selected_movie:
         col1, col2 = st.columns([1, 2])
         with col1:
             if details['poster']:
-                st.image(details['poster'], use_column_width=True)
+                st.image(details['poster'], use_container_width=True)
         with col2:
             st.markdown(f"**Overview:** {details['overview']}")
             st.markdown(f"**Rating:** ⭐ {details['rating']}/10")
@@ -270,13 +262,13 @@ if st.session_state.selected_movie:
         for i, actor in enumerate(details['cast']):
             with cast_cols[i]:
                 if actor['image']:
-                    st.markdown(f'<img src="{actor["image"]}" class="rounded-cast">', unsafe_allow_html=True)
-                st.markdown(actor['name'])
-                if st.button(f"know more", key=f"actor_info_{i}"):
+                    st.image(actor['image'], width=100, caption=actor['name'], output_format="auto")
+                    st.markdown(f"<img src='{actor['image']}' class='top-cast-img' width='100'>", unsafe_allow_html=True)
+                if st.button(f"Info: {actor['name']}", key=f"actor_info_{i}"):
                     actor_details = get_actor_details_tmdb(actor['id'])
                     if actor_details:
                         st.markdown(f"**{actor_details['name']}**")
                         st.markdown(f"**Born:** {actor_details['birth_date']} in {actor_details['place_of_birth']}")
                         st.markdown(f"**Biography:** {actor_details['biography']}")
                         if actor_details['profile_img']:
-                            st.image(actor_details['profile_img'])
+                            st.image(actor_details['profile_img'], use_container_width=True)
